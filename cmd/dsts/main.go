@@ -75,7 +75,7 @@ func main() {
 		os.Stdout.Write([]byte{','})
 
 		mu.RLock()
-		enc.Encode(i3sts)
+		_ = enc.Encode(i3sts)
 		mu.RUnlock()
 	}
 }
