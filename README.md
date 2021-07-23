@@ -4,6 +4,9 @@ My custom status for i3bar.
 
 There's no configuration files, everything is decided at compile time.
 
+I don't even use this anymore, but I also don't want to archive it just
+yet.
+
 ## Compile-time requirements
 
 *  Go compiler. See the `go.mod' file to know which version I was using
