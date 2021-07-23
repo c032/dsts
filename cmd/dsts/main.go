@@ -44,7 +44,7 @@ func main() {
 	tick := make(chan struct{})
 
 	// mu prevents multiple goroutines from modifying `i3sts` at the same time.
-	mu := sync.Mutex{}
+	mu := sync.RWMutex{}
 
 	// i3sts is what will be serialized as JSON and printed to standard output.
 	i3sts := make([]dsts.I3Status, len(providers))
@@ -73,6 +73,9 @@ func main() {
 	// Wait for a refresh to trigger, and update the status line.
 	for range tick {
 		os.Stdout.Write([]byte{','})
+
+		mu.RLock()
 		enc.Encode(i3sts)
+		mu.RUnlock()
 	}
 }
