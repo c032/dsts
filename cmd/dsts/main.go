@@ -44,7 +44,7 @@ func main() {
 	tick := make(chan struct{})
 
 	// mu prevents multiple goroutines from modifying `i3sts` at the same time.
-	mu := &sync.Mutex{}
+	mu := sync.Mutex{}
 
 	// i3sts is what will be serialized as JSON and printed to standard output.
 	i3sts := make([]dsts.I3Status, len(providers))
