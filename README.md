@@ -32,3 +32,7 @@ when necessary.
 
 This allows components to each have their own `refresh rate', instead of
 using a single global refresh rate for everything.
+
+## License
+
+MPL 2.0.
