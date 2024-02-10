@@ -1,5 +1,5 @@
-// Package tamrieltime implements a dsts.Provider for displaying current time
-// and date, formatted as in Skyrim.
+// Package tamrieltime implements functions for displaying current time and
+// date, formatted as in Skyrim.
 //
 // See <https://en.uesp.net/wiki/Lore:Calendar>.
 package tamrieltime
@@ -64,8 +64,8 @@ func Format(t time.Time) string {
 
 var _ dsts.StatusProviderFunc = TamrielTime
 
-// TamrielTime is a `dsts.Provider` for displaying the current date and time in
-// the format used by Skyrim.
+// TamrielTime is a `dsts.StatusProviderFunc` for displaying the current date
+// and time in the format used by Skyrim.
 func TamrielTime(ctx context.Context, ch chan<- dsts.I3Status) error {
 	firstTick := make(chan struct{})
 	go func() {
