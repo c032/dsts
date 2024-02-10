@@ -14,7 +14,7 @@ var (
 	ErrNilNotifier        = errors.New("nil notifier")
 )
 
-type CLI interface {
+type I3StatusLine interface {
 	AddNotifier(notifier Notifier) error
 	AddStatusLineBlocks(block ...*atomic.Pointer[StatusLineBlock]) error
 	AddStatusLineBlockProvider(p StatusLineBlockProvider) error
@@ -22,7 +22,7 @@ type CLI interface {
 	Run() error
 }
 
-func NewCLI(ctx context.Context, w io.Writer) (CLI, error) {
+func NewI3StatusLine(ctx context.Context, w io.Writer) (I3StatusLine, error) {
 	if ctx == nil {
 		ctx = context.Background()
 	}
@@ -31,15 +31,15 @@ func NewCLI(ctx context.Context, w io.Writer) (CLI, error) {
 		w = ioutil.Discard
 	}
 
-	cli := &cliStruct{
+	i3sl := &i3StatusLine{
 		ctx: ctx,
 		w:   w,
 	}
 
-	return cli, nil
+	return i3sl, nil
 }
 
-type cliStruct struct {
+type i3StatusLine struct {
 	ctx context.Context
 	w   io.Writer
 
@@ -53,39 +53,39 @@ type cliStruct struct {
 	StatusLineBlocks []*atomic.Pointer[StatusLineBlock]
 }
 
-func (cli *cliStruct) AddNotifier(notifier Notifier) error {
+func (i3sl *i3StatusLine) AddNotifier(notifier Notifier) error {
 	if notifier == nil {
 		return ErrNilNotifier
 	}
 
-	cli.UpdateNotifiers = append(cli.UpdateNotifiers, notifier)
+	i3sl.UpdateNotifiers = append(i3sl.UpdateNotifiers, notifier)
 
 	return nil
 }
 
-func (cli *cliStruct) AddStatusLineBlocks(blocks ...*atomic.Pointer[StatusLineBlock]) error {
+func (i3sl *i3StatusLine) AddStatusLineBlocks(blocks ...*atomic.Pointer[StatusLineBlock]) error {
 	for _, block := range blocks {
 		if block == nil {
 			return ErrNilStatusLineBlock
 		}
 	}
 
-	cli.StatusLineBlocks = append(cli.StatusLineBlocks, blocks...)
+	i3sl.StatusLineBlocks = append(i3sl.StatusLineBlocks, blocks...)
 
 	return nil
 }
 
-func (cli *cliStruct) AddStatusLineBlockProvider(p StatusLineBlockProvider) error {
-	notifier, slb := slbpToNotifier(cli.ctx, p)
+func (i3sl *i3StatusLine) AddStatusLineBlockProvider(p StatusLineBlockProvider) error {
+	notifier, slb := slbpToNotifier(i3sl.ctx, p)
 
 	var err error
 
-	err = cli.AddNotifier(notifier)
+	err = i3sl.AddNotifier(notifier)
 	if err != nil {
 		return err
 	}
 
-	err = cli.AddStatusLineBlocks(slb)
+	err = i3sl.AddStatusLineBlocks(slb)
 	if err != nil {
 		return err
 	}
@@ -93,14 +93,14 @@ func (cli *cliStruct) AddStatusLineBlockProvider(p StatusLineBlockProvider) erro
 	return nil
 }
 
-func (cli *cliStruct) Run() error {
-	ctx := cli.ctx
+func (i3sl *i3StatusLine) Run() error {
+	ctx := i3sl.ctx
 	if ctx == nil {
 		ctx = context.Background()
 	}
 
-	notifiers := cli.UpdateNotifiers
-	mutableStatusItems := cli.StatusLineBlocks
+	notifiers := i3sl.UpdateNotifiers
+	mutableStatusItems := i3sl.StatusLineBlocks
 
 	// tick is only used to notify when the status line must be updated.
 	tick := make(chan struct{})
@@ -111,7 +111,7 @@ func (cli *cliStruct) Run() error {
 		})
 	}
 
-	w := cli.w
+	w := i3sl.w
 
 	w.Write([]byte(`{"version":1}[[]`))
 

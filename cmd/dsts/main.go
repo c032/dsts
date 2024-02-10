@@ -28,14 +28,14 @@ func must2[T any](v T, err error) T {
 func main() {
 	ctx := context.Background()
 
-	cli := must2(dsts.NewCLI(ctx, os.Stdout))
+	statusLine := must2(dsts.NewI3StatusLine(ctx, os.Stdout))
 
 	tn := &dststime.Notifier{}
 
-	must1(cli.AddNotifier(tn))
-	must1(cli.AddStatusLineBlocks(&tn.StatusUnix, &tn.StatusDateTime))
+	must1(statusLine.AddNotifier(tn))
+	must1(statusLine.AddStatusLineBlocks(&tn.StatusUnix, &tn.StatusDateTime))
 
-	err := cli.Run()
+	err := statusLine.Run()
 	if err != nil {
 		panic(err)
 	}
