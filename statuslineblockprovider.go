@@ -15,7 +15,7 @@ type StatusLineBlockProvider func(ctx context.Context, ch chan<- StatusLineBlock
 func slbpToNotifier(ctx context.Context, p StatusLineBlockProvider) (Notifier, *atomic.Pointer[StatusLineBlock]) {
 	statusProvider := &atomic.Pointer[StatusLineBlock]{}
 
-	source := NotifierFunc(func(callback OnUpdateCallbackFunc) RemoveOnUpdateCallbackFunc {
+	source := UpdateNotifier(func(callback NotifierCallbackFunc) RemoveCallbackFunc {
 		ch := make(chan StatusLineBlock)
 
 		ctxProvider, cancel := context.WithCancelCause(ctx)

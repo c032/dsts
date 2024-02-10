@@ -7,14 +7,17 @@ type Notifier interface {
 	//
 	// It returns a function that, when called, should un-register `callback`
 	// so that it's no longer called on updates.
-	OnUpdate(callback OnUpdateCallbackFunc) RemoveOnUpdateCallbackFunc
+	OnUpdate(callback NotifierCallbackFunc) RemoveCallbackFunc
 }
 
-type OnUpdateCallbackFunc func()
-type RemoveOnUpdateCallbackFunc func()
+type NotifierCallbackFunc func()
+type RemoveCallbackFunc func()
 
-type NotifierFunc func(callback OnUpdateCallbackFunc) RemoveOnUpdateCallbackFunc
+// UpdateNotifier is a wrapper for a function with the same signature as
+// `Notifier.OnUpdate`, that implements `Notifier` by using itself as the
+// `OnUpdate` method.
+type UpdateNotifier func(callback NotifierCallbackFunc) RemoveCallbackFunc
 
-func (fn NotifierFunc) OnUpdate(callback OnUpdateCallbackFunc) RemoveOnUpdateCallbackFunc {
+func (fn UpdateNotifier) OnUpdate(callback NotifierCallbackFunc) RemoveCallbackFunc {
 	return fn(callback)
 }

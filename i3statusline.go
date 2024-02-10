@@ -100,13 +100,13 @@ func (i3sl *i3StatusLine) Run() error {
 	}
 
 	notifiers := i3sl.UpdateNotifiers
-	mutableStatusItems := i3sl.StatusLineBlocks
+	mutableBlocks := i3sl.StatusLineBlocks
 
 	// tick is only used to notify when the status line must be updated.
 	tick := make(chan struct{})
 
-	for _, source := range notifiers {
-		_ = source.OnUpdate(func() {
+	for _, notifier := range notifiers {
+		_ = notifier.OnUpdate(func() {
 			tick <- struct{}{}
 		})
 	}
@@ -117,13 +117,13 @@ func (i3sl *i3StatusLine) Run() error {
 
 	enc := json.NewEncoder(w)
 
-	// visibleStatusItems is what will be serialized as JSON and printed to
-	// standard output.
-	visibleStatusItems := make([]StatusLineBlock, len(mutableStatusItems))
+	// visibleBlocks is what will be serialized as JSON and printed to the
+	// writer.
+	visibleBlocks := make([]StatusLineBlock, len(mutableBlocks))
 
 	// Wait for a refresh to trigger, and update the status line.
 	for range tick {
-		for i, itemPtr := range mutableStatusItems {
+		for i, itemPtr := range mutableBlocks {
 			if itemPtr == nil {
 				continue
 			}
@@ -133,12 +133,12 @@ func (i3sl *i3StatusLine) Run() error {
 				continue
 			}
 
-			visibleStatusItems[i] = *v
+			visibleBlocks[i] = *v
 		}
 
 		w.Write([]byte{','})
 
-		_ = enc.Encode(visibleStatusItems)
+		_ = enc.Encode(visibleBlocks)
 	}
 
 	<-ctx.Done()

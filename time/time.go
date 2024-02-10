@@ -31,7 +31,7 @@ func (tn *Notifier) runCallbacks() {
 
 		// We want this to panic if the conversion can't be done, because that
 		// would mean there's a bug somewhere.
-		callback := value.(dsts.OnUpdateCallbackFunc)
+		callback := value.(dsts.NotifierCallbackFunc)
 
 		callback()
 
@@ -92,7 +92,7 @@ func (tn *Notifier) init() {
 	}
 }
 
-func (tn *Notifier) OnUpdate(callback dsts.OnUpdateCallbackFunc) dsts.RemoveOnUpdateCallbackFunc {
+func (tn *Notifier) OnUpdate(callback dsts.NotifierCallbackFunc) dsts.RemoveCallbackFunc {
 	tn.Lock()
 	defer tn.Unlock()
 
