@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"sync/atomic"
@@ -146,7 +147,7 @@ func (i3sl *i3StatusLine) Run() error {
 	err := ctx.Err()
 	if err != nil {
 		if !errors.Is(err, context.Canceled) {
-			return nil
+			return fmt.Errorf("unexpected error: %w", err)
 		}
 
 		cause := context.Cause(ctx)
