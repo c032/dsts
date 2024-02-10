@@ -10,8 +10,10 @@ import (
 	"github.com/c032/dsts"
 )
 
-type Source struct {
-	sync.RWMutex
+var _ dsts.Notifier = (*Notifier)(nil)
+
+type Notifier struct {
+	sync.Mutex
 
 	Context context.Context
 
@@ -19,12 +21,12 @@ type Source struct {
 	callbacks sync.Map
 	nextKey   int64
 
-	StatusUnix     atomic.Pointer[dsts.I3Status]
-	StatusDateTime atomic.Pointer[dsts.I3Status]
+	StatusUnix     atomic.Pointer[dsts.StatusLineBlock]
+	StatusDateTime atomic.Pointer[dsts.StatusLineBlock]
 }
 
-func (t *Source) runCallbacks() {
-	t.callbacks.Range(func(key any, value any) bool {
+func (tn *Notifier) runCallbacks() {
+	tn.callbacks.Range(func(key any, value any) bool {
 		const shouldContinue = true
 
 		// We want this to panic if the conversion can't be done, because that
@@ -37,32 +39,32 @@ func (t *Source) runCallbacks() {
 	})
 }
 
-func (t *Source) update(now time.Time) {
+func (tn *Notifier) update(now time.Time) {
 	const (
 		suffix = " · "
 		color  = dsts.DefaultStatusColor
 	)
 
-	t.StatusUnix.Store(&dsts.I3Status{
+	tn.StatusUnix.Store(&dsts.StatusLineBlock{
 		FullText: fmt.Sprintf("@%d", now.Unix()),
 		Color:    color,
 	})
 
-	t.StatusDateTime.Store(&dsts.I3Status{
+	tn.StatusDateTime.Store(&dsts.StatusLineBlock{
 		FullText: now.Format("2006-01-02 15:04:05") + suffix,
 		Color:    color,
 	})
 }
 
-func (t *Source) init() {
-	if t.Context == nil {
-		t.Context = context.Background()
+func (tn *Notifier) init() {
+	if tn.Context == nil {
+		tn.Context = context.Background()
 	}
 
-	ctx := t.Context
+	ctx := tn.Context
 
-	if t.ticker == nil {
-		t.ticker = time.NewTicker(200 * time.Millisecond)
+	if tn.ticker == nil {
+		tn.ticker = time.NewTicker(200 * time.Millisecond)
 
 		go func(ctx context.Context, tick <-chan time.Time) {
 			firstTick := make(chan struct{})
@@ -72,8 +74,8 @@ func (t *Source) init() {
 
 			onTick := func() {
 				now := time.Now()
-				t.update(now)
-				t.runCallbacks()
+				tn.update(now)
+				tn.runCallbacks()
 			}
 
 			for {
@@ -86,22 +88,22 @@ func (t *Source) init() {
 					onTick()
 				}
 			}
-		}(ctx, t.ticker.C)
+		}(ctx, tn.ticker.C)
 	}
 }
 
-func (t *Source) OnUpdate(callback dsts.OnUpdateCallbackFunc) dsts.RemoveOnUpdateCallbackFunc {
-	t.Lock()
-	defer t.Unlock()
+func (tn *Notifier) OnUpdate(callback dsts.OnUpdateCallbackFunc) dsts.RemoveOnUpdateCallbackFunc {
+	tn.Lock()
+	defer tn.Unlock()
 
-	t.init()
+	tn.init()
 
-	key := t.nextKey
-	t.nextKey++
-	t.callbacks.Store(key, callback)
+	key := tn.nextKey
+	tn.nextKey++
+	tn.callbacks.Store(key, callback)
 
 	removeCallback := func() {
-		t.callbacks.Delete(key)
+		tn.callbacks.Delete(key)
 	}
 
 	return removeCallback

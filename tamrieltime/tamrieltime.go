@@ -62,11 +62,11 @@ func Format(t time.Time) string {
 	return fmt.Sprintf("%s, %s, %d%s of %s", weekdays[t.Weekday()], timeStr, day, daySuffix, months[t.Month()])
 }
 
-var _ dsts.StatusProviderFunc = TamrielTime
+var _ dsts.StatusLineBlockProvider = TamrielTime
 
 // TamrielTime is a `dsts.StatusProviderFunc` for displaying the current date
 // and time in the format used by Skyrim.
-func TamrielTime(ctx context.Context, ch chan<- dsts.I3Status) error {
+func TamrielTime(ctx context.Context, ch chan<- dsts.StatusLineBlock) error {
 	firstTick := make(chan struct{})
 	go func() {
 		firstTick <- struct{}{}
@@ -76,12 +76,12 @@ func TamrielTime(ctx context.Context, ch chan<- dsts.I3Status) error {
 		case <-ctx.Done():
 			return nil
 		case <-firstTick:
-			ch <- dsts.I3Status{
+			ch <- dsts.StatusLineBlock{
 				FullText: Format(time.Now()),
 				Color:    "#999999",
 			}
 		case <-time.After(500 * time.Millisecond):
-			ch <- dsts.I3Status{
+			ch <- dsts.StatusLineBlock{
 				FullText: Format(time.Now()),
 				Color:    "#999999",
 			}

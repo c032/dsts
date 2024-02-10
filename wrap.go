@@ -21,10 +21,10 @@ const (
 // in characters, the wrapper will output at most `width` characters, and will
 // automatically "scroll" back and forth, so the full status can be eventually
 // read.
-func Wrap(p StatusProviderFunc, width int) StatusProviderFunc {
-	return func(ctx context.Context, chOut chan<- I3Status) error {
+func Wrap(p StatusLineBlockProvider, width int) StatusLineBlockProvider {
+	return func(ctx context.Context, chOut chan<- StatusLineBlock) error {
 		chError := make(chan error)
-		chIn := make(chan I3Status)
+		chIn := make(chan StatusLineBlock)
 
 		// Start the inner provider.
 		go func(chError chan<- error) {
@@ -32,8 +32,8 @@ func Wrap(p StatusProviderFunc, width int) StatusProviderFunc {
 		}(chError)
 
 		var (
-			sts     I3Status
-			prevSts I3Status
+			sts     StatusLineBlock
+			prevSts StatusLineBlock
 		)
 
 		// Main loop for the outer provider.
@@ -72,7 +72,7 @@ func Wrap(p StatusProviderFunc, width int) StatusProviderFunc {
 						}
 
 						text := string(rs[:width])
-						chOut <- I3Status{
+						chOut <- StatusLineBlock{
 							FullText: text,
 							Color:    sts.Color,
 						}
@@ -123,7 +123,7 @@ func Wrap(p StatusProviderFunc, width int) StatusProviderFunc {
 					offset += direction
 
 					text := string(rs[offset : offset+width])
-					chOut <- I3Status{
+					chOut <- StatusLineBlock{
 						FullText: text,
 						Color:    sts.Color,
 					}
