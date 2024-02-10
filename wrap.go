@@ -1,6 +1,7 @@
 package dsts
 
 import (
+	"context"
 	"time"
 )
 
@@ -20,12 +21,15 @@ const (
 // in characters, the wrapper will output at most `width` characters, and will
 // automatically "scroll" back and forth, so the full status can be eventually
 // read.
-func Wrap(p Provider, width int) Provider {
-	return func(chOut chan<- I3Status) {
+func Wrap(p StatusProviderFunc, width int) StatusProviderFunc {
+	return func(ctx context.Context, chOut chan<- I3Status) error {
+		chError := make(chan error)
 		chIn := make(chan I3Status)
 
 		// Start the inner provider.
-		go p(chIn)
+		go func(chError chan<- error) {
+			chError <- p(ctx, chIn)
+		}(chError)
 
 		var (
 			sts     I3Status
@@ -41,9 +45,14 @@ func Wrap(p Provider, width int) Provider {
 			offset := 0
 			direction := 1
 
+			var innerError error
+
 		Scroll:
 			for {
 				select {
+				case innerError = <-chError:
+					return innerError
+
 				// The underlying provider sent a new message.
 				case sts = <-chIn:
 					// If the current message is the same as the previous one,

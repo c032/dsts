@@ -5,6 +5,7 @@
 package tamrieltime
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -61,15 +62,29 @@ func Format(t time.Time) string {
 	return fmt.Sprintf("%s, %s, %d%s of %s", weekdays[t.Weekday()], timeStr, day, daySuffix, months[t.Month()])
 }
 
-var _ dsts.Provider = TamrielTime
+var _ dsts.StatusProviderFunc = TamrielTime
 
 // TamrielTime is a `dsts.Provider` for displaying the current date and time in
 // the format used by Skyrim.
-func TamrielTime(ch chan<- dsts.I3Status) {
-	for ; ; time.Sleep(500 * time.Millisecond) {
-		ch <- dsts.I3Status{
-			FullText: Format(time.Now()),
-			Color:    "#999999",
+func TamrielTime(ctx context.Context, ch chan<- dsts.I3Status) error {
+	firstTick := make(chan struct{})
+	go func() {
+		firstTick <- struct{}{}
+	}()
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		case <-firstTick:
+			ch <- dsts.I3Status{
+				FullText: Format(time.Now()),
+				Color:    "#999999",
+			}
+		case <-time.After(500 * time.Millisecond):
+			ch <- dsts.I3Status{
+				FullText: Format(time.Now()),
+				Color:    "#999999",
+			}
 		}
 	}
 }
