@@ -1,0 +1,11 @@
+name: "push"
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "master"
+
+jobs:
+  check:
+    uses: "./.github/workflows/check.yml"
