@@ -13,9 +13,9 @@ import (
 type StatusLineBlockProvider func(ctx context.Context, ch chan<- StatusLineBlock) error
 
 func slbpToNotifier(ctx context.Context, p StatusLineBlockProvider) (Notifier, *atomic.Pointer[StatusLineBlock]) {
-	statusProvider := &atomic.Pointer[StatusLineBlock]{}
+	statusLineBlock := &atomic.Pointer[StatusLineBlock]{}
 
-	source := UpdateNotifier(func(callback NotifierCallbackFunc) RemoveCallbackFunc {
+	notifier := UpdateNotifier(func(callback NotifierCallbackFunc) RemoveCallbackFunc {
 		ch := make(chan StatusLineBlock)
 
 		ctxProvider, cancel := context.WithCancelCause(ctx)
@@ -35,7 +35,7 @@ func slbpToNotifier(ctx context.Context, p StatusLineBlockProvider) (Notifier, *
 				case <-ctx.Done():
 					return
 				case status := <-ch:
-					statusProvider.Store(&status)
+					statusLineBlock.Store(&status)
 					callback()
 				}
 			}
@@ -48,5 +48,5 @@ func slbpToNotifier(ctx context.Context, p StatusLineBlockProvider) (Notifier, *
 		return remove
 	})
 
-	return source, statusProvider
+	return notifier, statusLineBlock
 }
