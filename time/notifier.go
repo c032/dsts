@@ -71,23 +71,19 @@ func (tn *Notifier) initWithLock() {
 		tn.ticker = time.NewTicker(200 * time.Millisecond)
 
 		go func(ctx context.Context, tick <-chan time.Time) {
-			firstTick := make(chan struct{})
-			go func() {
-				firstTick <- struct{}{}
-			}()
-
 			onTick := func() {
 				now := time.Now()
 				tn.update(now)
 				tn.runCallbacks()
 			}
 
+			// First tick.
+			onTick()
+
 			for {
 				select {
 				case <-ctx.Done():
 					return
-				case <-firstTick:
-					onTick()
 				case <-tick:
 					onTick()
 				}

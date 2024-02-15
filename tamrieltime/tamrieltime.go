@@ -67,24 +67,22 @@ var _ dsts.StatusLineBlockProvider = TamrielTime
 // TamrielTime is a `dsts.StatusProviderFunc` for displaying the current date
 // and time in the format used by Skyrim.
 func TamrielTime(ctx context.Context, ch chan<- dsts.StatusLineBlock) error {
-	firstTick := make(chan struct{})
-	go func() {
-		firstTick <- struct{}{}
-	}()
+	onTick := func() {
+		ch <- dsts.StatusLineBlock{
+			FullText: Format(time.Now()),
+			Color:    "#999999",
+		}
+	}
+
+	// First tick.
+	onTick()
+
 	for {
 		select {
 		case <-ctx.Done():
 			return nil
-		case <-firstTick:
-			ch <- dsts.StatusLineBlock{
-				FullText: Format(time.Now()),
-				Color:    "#999999",
-			}
 		case <-time.After(500 * time.Millisecond):
-			ch <- dsts.StatusLineBlock{
-				FullText: Format(time.Now()),
-				Color:    "#999999",
-			}
+			onTick()
 		}
 	}
 }
