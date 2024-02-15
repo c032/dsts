@@ -13,13 +13,14 @@ import (
 var _ dsts.Notifier = (*Notifier)(nil)
 
 type Notifier struct {
-	sync.Mutex
-
 	Context context.Context
 
-	ticker    *time.Ticker
-	callbacks sync.Map
-	nextKey   int64
+	mu sync.Mutex
+
+	ticker *time.Ticker
+
+	callbacks            sync.Map
+	callbacksKeySequence atomic.Int64
 
 	StatusUnix     atomic.Pointer[dsts.StatusLineBlock]
 	StatusDateTime atomic.Pointer[dsts.StatusLineBlock]
@@ -56,7 +57,10 @@ func (tn *Notifier) update(now time.Time) {
 	})
 }
 
-func (tn *Notifier) init() {
+func (tn *Notifier) initWithLock() {
+	tn.mu.Lock()
+	defer tn.mu.Unlock()
+
 	if tn.Context == nil {
 		tn.Context = context.Background()
 	}
@@ -93,13 +97,9 @@ func (tn *Notifier) init() {
 }
 
 func (tn *Notifier) OnUpdate(callback dsts.NotifierCallbackFunc) dsts.RemoveCallbackFunc {
-	tn.Lock()
-	defer tn.Unlock()
+	tn.initWithLock()
 
-	tn.init()
-
-	key := tn.nextKey
-	tn.nextKey++
+	key := tn.callbacksKeySequence.Add(1)
 	tn.callbacks.Store(key, callback)
 
 	removeCallback := func() {
