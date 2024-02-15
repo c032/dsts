@@ -107,9 +107,12 @@ func (i3sl *i3StatusLine) Run() error {
 	tick := make(chan struct{})
 
 	for _, notifier := range notifiers {
-		_ = notifier.OnUpdate(func() {
+		unsub := notifier.OnUpdate(func() {
 			tick <- struct{}{}
 		})
+
+		// Ensure `unsub` is called when the function returns.
+		defer unsub()
 	}
 
 	w := i3sl.w
