@@ -24,6 +24,8 @@ func slbpToNotifier(ctx context.Context, p StatusLineBlockProvider) (Notifier, *
 			err := p(ctxProvider, ch)
 			if err != nil {
 				cancel(err)
+
+				return
 			}
 
 			cancel(nil)
