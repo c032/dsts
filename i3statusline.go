@@ -46,8 +46,8 @@ type i3StatusLine struct {
 
 	UpdateNotifiers []Notifier
 
-	// StatusItems contains the blocks of the status line, in the same order
-	// that they will be displayed in the i3bar.
+	// StatusLineBlocks contains the blocks of the status line, in the same
+	// order that they will be displayed in the i3bar.
 	//
 	// Providers with a lower index will be displayed somewhere to the left of
 	// providers with a higher index.
