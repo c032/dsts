@@ -17,8 +17,9 @@ var (
 
 type I3StatusLine interface {
 	AddNotifier(notifier Notifier) error
-	AddStatusLineBlocks(block ...*atomic.Pointer[StatusLineBlock]) error
-	AddStatusLineBlockProvider(p StatusLineBlockProvider) error
+
+	AppendStatusLineBlocks(block ...*atomic.Pointer[StatusLineBlock]) error
+	AppendStatusLineBlockProvider(p StatusLineBlockProvider) error
 
 	Run() error
 }
@@ -64,7 +65,7 @@ func (i3sl *i3StatusLine) AddNotifier(notifier Notifier) error {
 	return nil
 }
 
-func (i3sl *i3StatusLine) AddStatusLineBlocks(blocks ...*atomic.Pointer[StatusLineBlock]) error {
+func (i3sl *i3StatusLine) AppendStatusLineBlocks(blocks ...*atomic.Pointer[StatusLineBlock]) error {
 	for _, block := range blocks {
 		if block == nil {
 			return ErrNilStatusLineBlock
@@ -76,7 +77,7 @@ func (i3sl *i3StatusLine) AddStatusLineBlocks(blocks ...*atomic.Pointer[StatusLi
 	return nil
 }
 
-func (i3sl *i3StatusLine) AddStatusLineBlockProvider(p StatusLineBlockProvider) error {
+func (i3sl *i3StatusLine) AppendStatusLineBlockProvider(p StatusLineBlockProvider) error {
 	notifier, slb := slbpToNotifier(i3sl.ctx, p)
 
 	var err error
@@ -86,7 +87,7 @@ func (i3sl *i3StatusLine) AddStatusLineBlockProvider(p StatusLineBlockProvider) 
 		return err
 	}
 
-	err = i3sl.AddStatusLineBlocks(slb)
+	err = i3sl.AppendStatusLineBlocks(slb)
 	if err != nil {
 		return err
 	}

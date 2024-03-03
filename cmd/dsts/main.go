@@ -33,7 +33,7 @@ func main() {
 	tn := &dststime.Notifier{}
 
 	must1(statusLine.AddNotifier(tn))
-	must1(statusLine.AddStatusLineBlocks(&tn.StatusUnix, &tn.StatusDateTime))
+	must1(statusLine.AppendStatusLineBlocks(&tn.StatusUnix, &tn.StatusDateTime))
 
 	err := statusLine.Run()
 	if err != nil {
