@@ -8,4 +8,7 @@ on:
 
 jobs:
   check:
-    uses: "./.github/workflows/check.yml"
+    runs-on: "ubuntu-latest"
+    steps:
+      - uses: "actions/checkout@v4"
+      - uses: "c032/gha-go@main"
